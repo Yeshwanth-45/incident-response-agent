@@ -15,10 +15,13 @@ import type {
 // Connection
 // ---------------------------------------------------------------------------
 // Node's built-in `node:sqlite` module (stable since Node 22.5) is used so the
-// project has zero native build dependencies. The DB file lives outside the
-// Next.js build output so it survives restarts during local development.
+// project has zero native build dependencies. Locally the DB file lives
+// outside the Next.js build output so it survives dev-server restarts. On
+// Vercel, only /tmp is writable, and it resets on every cold start, so data
+// created there (new incidents, post-mortems) is not permanent - the seed
+// data will always be there, but anything created live may not persist.
 
-const DATA_DIR = path.join(process.cwd(), '.data');
+const DATA_DIR = process.env.VERCEL ? '/tmp' : path.join(process.cwd(), '.data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 const DB_PATH = process.env.DATABASE_URL?.replace(/^file:/, '') || path.join(DATA_DIR, 'app.db');
 
